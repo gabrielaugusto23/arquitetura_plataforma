@@ -93,9 +93,25 @@ export function ModalVerRelatorio({
   }
 
   const handleMudarDataHora = (novaData: string) => {
+    if (!novaData) return
+    
+    const [data, hora] = novaData.split('T')
+    if (!data || !hora) return
+    
+    const [ano, mes, dia] = data.split('-')
+    const [horas, minutos] = hora.split(':')
+    
+    const dataLocal = new Date(
+      parseInt(ano),
+      parseInt(mes) - 1,
+      parseInt(dia),
+      parseInt(horas),
+      parseInt(minutos)
+    )
+    
     setDados({
       ...dados,
-      ultimaAtualizacao: new Date(novaData).toISOString(),
+      ultimaAtualizacao: dataLocal.toISOString(),
     })
   }
 
@@ -215,7 +231,7 @@ export function ModalVerRelatorio({
 
   return (
     <Dialog open={aberto} onOpenChange={aoFechar}>
-      <DialogContent className="max-w-md border-gray-800 bg-black sm:rounded-lg">
+      <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto border-gray-800 bg-black sm:rounded-lg">
         <DialogHeader className="flex flex-row items-center justify-between">
           <div className="flex-1">
             <DialogTitle className="text-white">

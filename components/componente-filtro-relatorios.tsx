@@ -205,7 +205,7 @@ export function ComponenteFiltroRelatorios({
             >
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
-            {filtros.categoria && (
+            {filtros.categoria && tiposDisponiveis && tiposDisponiveis.length > 0 && (
               <SelectContent className="border-gray-800 bg-black text-gray-200">
                 <SelectItem value="vazio">Todos os tipos</SelectItem>
                 {tiposDisponiveis.map((tipo) => (

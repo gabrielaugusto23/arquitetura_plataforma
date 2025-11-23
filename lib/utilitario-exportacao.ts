@@ -1,11 +1,8 @@
-// ============================================================================
-// UTILITÁRIO PARA EXPORTAÇÃO DE RELATÓRIOS EM EXCEL
-// ============================================================================
-// Funções para converter dados de relatórios em formato Excel (CSV)
+// Funções para converter dados de relatórios em formato (CSV)
 
 import { type Relatorio } from "@/types/relatorio"
 
-// Interface para dados de reembolso (para exportação específica)
+// Interface para dados de reembolso
 export interface DadosReembolso {
   id: string
   funcionario: string
@@ -17,9 +14,9 @@ export interface DadosReembolso {
 }
 
 /**
- * Exporta relatórios de reembolsos para arquivo CSV (compatível com Excel)
- * @param relatorios - Lista de relatórios a exportar
- * @param nomeArquivo - Nome do arquivo a ser baixado
+  //Exporta relatórios para arquivo CSV
+ * @param relatorios
+ * @param nomeArquivo
  */
 export function exportarRelatoriosEmCSV(
   relatorios: Relatorio[],
@@ -57,7 +54,7 @@ export function exportarRelatoriosEmCSV(
 }
 
 /**
- * Exporta dados de reembolsos para arquivo CSV
+ // Exporta dados de reembolsos para arquivo CSV
  * @param reembolsos - Lista de reembolsos a exportar
  * @param nomeArquivo - Nome do arquivo a ser baixado
  */
@@ -99,10 +96,10 @@ export function exportarReembolsosEmCSV(
 }
 
 /**
- * Cria uma string CSV a partir de cabeçalhos e linhas
- * @param cabecalhos - Array com cabeçalhos das colunas
- * @param linhas - Array de arrays com dados das linhas
- * @returns String no formato CSV
+ // Cria uma string CSV a partir de cabeçalhos e linhas
+ * @param cabecalhos
+ * @param linhas
+ * @returns
  */
 function criarCSV(
   cabecalhos: string[],
@@ -130,10 +127,10 @@ function criarCSV(
 }
 
 /**
- * Baixa um arquivo de texto
- * @param conteudo - Conteúdo do arquivo
- * @param nomeArquivo - Nome do arquivo
- * @param tipo - Tipo MIME do arquivo
+ // Baixa um arquivo de texto
+  @param conteudo // Conteúdo do arquivo
+  @param nomeArquivo // Nome do arquivo
+  @param tipo // Tipo MIME do arquivo
  */
 function baixarArquivo(
   conteudo: string,
@@ -162,7 +159,6 @@ function baixarArquivo(
 
 /**
  * Exporta relatórios em formato Excel (XLSX) - requer biblioteca adicional
- * NOTA: Para usar esta função, instale: npm install xlsx
  * @param relatorios - Lista de relatórios a exportar
  * @param nomeArquivo - Nome do arquivo a ser baixado
  */
@@ -170,13 +166,6 @@ export function exportarRelatoriosEmExcel(
   relatorios: Relatorio[],
   nomeArquivo: string = "relatorios.xlsx"
 ): void {
-  // IMPLEMENTAÇÃO FUTURA
-  // Quando utilizar biblioteca XLSX:
-  // 1. Instalar: npm install xlsx
-  // 2. Implementar conversão de dados
-  // 3. Criar arquivo Excel com formatação
-
-  // Por enquanto, usar exportarRelatoriosEmCSV como alternativa
   console.warn(
     "Exportação em XLSX ainda não implementada. Usando CSV como alternativa."
   )
@@ -207,7 +196,7 @@ export function formatarRelatorioParaExportar(relatorio: Relatorio) {
 }
 
 /**
- * Formata um reembolso para exibição no Excel
+ Formata um reembolso para exibição no Excel
  * @param reembolso - Reembolso a formatar
  * @returns Objeto formatado para exportação
  */
