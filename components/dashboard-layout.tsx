@@ -19,6 +19,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     setMounted(true)
   }, [])
 
+  // Durante SSR, renderizar um skeleton para evitar mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-950 text-gray-200">
@@ -31,7 +32,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="h-16 border-b border-gray-800 bg-black"></div>
             </div>
             <main className="mx-auto max-w-[1400px] px-4 pb-10 pt-4 sm:px-6 lg:px-8">
-              {children}
+              {/* Skeleton do conteúdo */}
             </main>
           </div>
         </div>
