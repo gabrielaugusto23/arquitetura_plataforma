@@ -1,4 +1,4 @@
-// Este arquivo contém as definições de tipos para o sistema de relatórios
+// Este seção contém as definições de tipos para o sistema de relatórios
 // Aqui tentei deixar os dados comunicados com o backend através da API REST
 
 // Status do reltório
