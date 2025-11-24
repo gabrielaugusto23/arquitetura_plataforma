@@ -54,6 +54,14 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
     arquivo: undefined,
   })
 
+  // Atualizar data e hora automaticamente quando o modal abre
+  const atualizarDataHora = () => {
+    setDados(prev => ({
+      ...prev,
+      ultimaAtualizacao: new Date().toISOString()
+    }))
+  }
+
   // Tipos disponíveis baseado na categoria selecionada
   const tiposDisponiveis = TIPOS_POR_CATEGORIA[dados.categoria as CategoriaRelatorio] || []
 
@@ -65,27 +73,15 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
     })
   }
 
-  const handleMudarDataHora = (novaData: string) => {
-    if (!novaData) return
+  const obterDataHoraFormatada = () => {
+    const agora = new Date()
+    const dia = String(agora.getDate()).padStart(2, '0')
+    const mes = String(agora.getMonth() + 1).padStart(2, '0')
+    const ano = agora.getFullYear()
+    const horas = String(agora.getHours()).padStart(2, '0')
+    const minutos = String(agora.getMinutes()).padStart(2, '0')
     
-    const [data, hora] = novaData.split('T')
-    if (!data || !hora) return
-    
-    const [ano, mes, dia] = data.split('-')
-    const [horas, minutos] = hora.split(':')
-    
-    const dataLocal = new Date(
-      parseInt(ano),
-      parseInt(mes) - 1,
-      parseInt(dia),
-      parseInt(horas),
-      parseInt(minutos)
-    )
-    
-    setDados({
-      ...dados,
-      ultimaAtualizacao: dataLocal.toISOString(),
-    })
+    return `${dia}/${mes}/${ano} ${horas}:${minutos}`
   }
 
   const handleSelecionarArquivo = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,7 +200,7 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
 
   return (
     <Dialog open={aberto} onOpenChange={aoFechar}>
-      <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto border-gray-800 bg-black sm:rounded-lg">
+      <DialogContent className="max-h-[85vh] max-w-sm overflow-y-auto border-gray-800 bg-black sm:rounded-lg" onOpenAutoFocus={() => atualizarDataHora()}>
         <DialogHeader>
           <DialogTitle className="text-white">Novo Relatório</DialogTitle>
           <DialogDescription className="text-gray-400">
@@ -286,17 +282,16 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
           </div>
 
           {/* Data e Hora da última atualização */}
-          <div className="space-y-2">
-            <Label htmlFor="ultimaAtualizacao" className="text-gray-300">
+          <div className="space-y-1">
+            <Label htmlFor="ultimaAtualizacao" className="text-xs text-gray-400">
               Data e Hora
             </Label>
             <Input
               id="ultimaAtualizacao"
-              type="datetime-local"
-              value={new Date(dados.ultimaAtualizacao).toISOString().slice(0, 16)}
-              onChange={(e) => handleMudarDataHora(e.target.value)}
-              className="border-gray-800 bg-gray-950 text-white"
-              required
+              type="text"
+              value={obterDataHoraFormatada()}
+              readOnly
+              className="h-8 border-gray-800 bg-gray-950 text-xs text-gray-300 cursor-not-allowed"
             />
           </div>
 

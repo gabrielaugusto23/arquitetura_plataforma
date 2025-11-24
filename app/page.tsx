@@ -8,10 +8,13 @@ import { ArrowDown, ArrowUp, DollarSign, Package, Receipt, Users } from 'lucide-
 import { PageHeader } from "@/components/page-header"
 import { useAppContext } from "@/app/context/AppContext"
 import { useSPANavigation } from "@/hooks/use-spa-navigation"
+import { useState } from "react"
+import { ModalNovaTransacao } from "@/components/modal-nova-transacao"
 
 export default function Dashboard() {
   const { addNotification, userInfo, setUserInfo } = useAppContext()
   const { navigate } = useSPANavigation()
+  const [modalTransacaoAberto, setModalTransacaoAberto] = useState(false)
 
   const handleWelcomeUser = () => {
     if (!userInfo) {
@@ -28,8 +31,12 @@ export default function Dashboard() {
     }
   }
 
-  const handleNavigateToReports = () => {
-    navigate("/reembolsos", true)
+  const criarTransacao = async (dados: any) => {
+    addNotification({
+      type: "success",
+      message: "Transacao registrada com sucesso!"
+    })
+    setModalTransacaoAberto(false)
   }
 
   return (
@@ -42,7 +49,9 @@ export default function Dashboard() {
             <Button onClick={handleWelcomeUser}>
               {userInfo ? `Olá, ${userInfo.name}` : "Login"}
             </Button>
-            <Button className="bg-orange-500 hover:bg-orange-600">Nova Transação</Button>
+            <Button className="bg-orange-500 hover:bg-orange-600" onClick={() => setModalTransacaoAberto(true)}>
+              Nova Transacao
+            </Button>
           </div>
         }
         breadcrumbs={[{ label: "Início", href: "/" }, { label: "Dashboard" }]}
@@ -141,6 +150,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <ModalNovaTransacao
+        aberto={modalTransacaoAberto}
+        aoFechar={() => setModalTransacaoAberto(false)}
+        aoEnviar={criarTransacao}
+      />
     </DashboardLayout>
   )
 }
