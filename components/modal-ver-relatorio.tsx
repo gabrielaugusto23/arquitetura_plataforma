@@ -66,12 +66,13 @@ export function ModalVerRelatorio({
   // Inicializa os dados quando o modal abre com um relatório
   useEffect(() => {
     if (aberto && relatorio) {
+      const dataHoraAtual = new Date().toISOString()
       setDados({
         nome: relatorio.nome,
         categoria: relatorio.categoria,
         tipo: relatorio.tipo,
         periodo: relatorio.periodo,
-        ultimaAtualizacao: relatorio.ultimaAtualizacao.toString(),
+        ultimaAtualizacao: dataHoraAtual,
         status: relatorio.status,
         descricao: relatorio.descricao || "",
         arquivo: undefined,
@@ -92,27 +93,15 @@ export function ModalVerRelatorio({
     })
   }
 
-  const handleMudarDataHora = (novaData: string) => {
-    if (!novaData) return
+  const obterDataHoraFormatada = () => {
+    const agora = new Date()
+    const dia = String(agora.getDate()).padStart(2, '0')
+    const mes = String(agora.getMonth() + 1).padStart(2, '0')
+    const ano = agora.getFullYear()
+    const horas = String(agora.getHours()).padStart(2, '0')
+    const minutos = String(agora.getMinutes()).padStart(2, '0')
     
-    const [data, hora] = novaData.split('T')
-    if (!data || !hora) return
-    
-    const [ano, mes, dia] = data.split('-')
-    const [horas, minutos] = hora.split(':')
-    
-    const dataLocal = new Date(
-      parseInt(ano),
-      parseInt(mes) - 1,
-      parseInt(dia),
-      parseInt(horas),
-      parseInt(minutos)
-    )
-    
-    setDados({
-      ...dados,
-      ultimaAtualizacao: dataLocal.toISOString(),
-    })
+    return `${dia}/${mes}/${ano} ${horas}:${minutos}`
   }
 
   const handleSelecionarArquivo = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -320,17 +309,16 @@ export function ModalVerRelatorio({
             </div>
 
             {/* Data e Hora */}
-            <div className="space-y-2">
-              <Label htmlFor="ultimaAtualizacao" className="text-gray-300">
+            <div className="space-y-1">
+              <Label htmlFor="ultimaAtualizacao" className="text-xs text-gray-400">
                 Data e Hora
               </Label>
               <Input
                 id="ultimaAtualizacao"
-                type="datetime-local"
-                value={new Date(dados.ultimaAtualizacao).toISOString().slice(0, 16)}
-                onChange={(e) => handleMudarDataHora(e.target.value)}
-                className="border-gray-800 bg-gray-950 text-white"
-                required
+                type="text"
+                value={obterDataHoraFormatada()}
+                readOnly
+                className="h-8 border-gray-800 bg-gray-950 text-xs text-gray-300 cursor-not-allowed"
               />
             </div>
 

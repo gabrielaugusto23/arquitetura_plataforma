@@ -430,36 +430,25 @@ export default function RelatoriosPage() {
                       <TableCell>
                         {/* Botões de ação dependendo do status do relatório */}
                         <div className="flex gap-2">
-                          {relatorio.status === "Disponível" ? (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleBaixarRelatorio(relatorio)}
-                                className="bg-orange-500 hover:bg-orange-600"
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                Download
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleAbrirVerRelatorio(relatorio)}
-                                variant="outline"
-                                className="border-gray-700 text-gray-300 hover:bg-gray-800"
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                Ver
-                              </Button>
-                            </>
-                          ) : (
+                          {relatorio.status === "Disponível" && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              className="border-gray-700 text-gray-500"
-                              disabled
+                              onClick={() => handleBaixarRelatorio(relatorio)}
+                              className="bg-orange-500 hover:bg-orange-600"
                             >
-                              Aguardar
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            onClick={() => handleAbrirVerRelatorio(relatorio)}
+                            variant="outline"
+                            className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            Ver
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
