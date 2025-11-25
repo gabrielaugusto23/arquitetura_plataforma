@@ -1,12 +1,16 @@
 "use client"
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface User {
   id: string;
   name: string;
   email: string;
   role: string;
+  avatar?: string;
 }
 
 interface Notification {
@@ -17,20 +21,16 @@ interface Notification {
 }
 
 interface AppContextType {
-  // Estado do usuário
   userInfo: User | null;
   setUserInfo: (info: User | null) => void;
-  
-  // Estado de notificações
+  isAuthenticated: boolean;
+  login: (email: string, senha: string) => Promise<void>;
+  logout: () => void;
   notifications: Notification[];
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void;
   removeNotification: (id: string) => void;
-  
-  // Estado de loading global
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  
-  // Estado da sidebar mobile
   isSidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }
@@ -42,6 +42,61 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('engnet_user');
+    if (savedUser) {
+      try {
+        setUserInfo(JSON.parse(savedUser));
+      } catch (e) {
+        localStorage.removeItem('engnet_user');
+      }
+    }
+  }, []);
+
+  const login = async (email: string, senha: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      if (!res.ok) {
+        const erro = await res.json();
+        throw new Error(erro.message || 'Falha na autenticação');
+      }
+
+      const data = await res.json();
+      
+      const user = data.user;
+      const token = data.access_token;
+
+      setUserInfo(user);
+      localStorage.setItem('engnet_token', token);
+      localStorage.setItem('engnet_user', JSON.stringify(user));
+      
+      addNotification({ type: 'success', message: `Bem-vindo, ${user.nome}!` });
+      router.push('/');
+      
+    } catch (error: any) {
+      console.error(error);
+      addNotification({ type: 'error', message: error.message || 'Erro ao conectar no servidor.' });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('engnet_token');
+    localStorage.removeItem('engnet_user');
+    setUserInfo(null);
+    router.push('/login');
+    addNotification({ type: 'info', message: 'Você saiu do sistema.' });
+  };
 
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
     const newNotification: Notification = {
@@ -50,11 +105,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       timestamp: new Date(),
     };
     setNotifications(prev => [...prev, newNotification]);
-    
-    // Remove a notificação após 5 segundos
-    setTimeout(() => {
-      removeNotification(newNotification.id);
-    }, 5000);
+    setTimeout(() => removeNotification(newNotification.id), 5000);
   };
 
   const removeNotification = (id: string) => {
@@ -65,6 +116,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     <AppContext.Provider value={{
       userInfo,
       setUserInfo,
+      isAuthenticated: !!userInfo,
+      login,
+      logout,
       notifications,
       addNotification,
       removeNotification,
