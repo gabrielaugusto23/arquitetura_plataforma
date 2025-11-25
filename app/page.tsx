@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,36 +9,37 @@ import { Button } from "@/components/ui/button"
 import { ArrowDown, ArrowUp, DollarSign, Package, Receipt, Users } from 'lucide-react'
 import { PageHeader } from "@/components/page-header"
 import { useAppContext } from "@/app/context/AppContext"
-import { useSPANavigation } from "@/hooks/use-spa-navigation"
-import { useState } from "react"
 import { ModalNovaTransacao } from "@/components/modal-nova-transacao"
 
 export default function Dashboard() {
-  const { addNotification, userInfo, setUserInfo } = useAppContext()
-  const { navigate } = useSPANavigation()
+  const { 
+    userInfo, 
+    isAuthenticated, 
+    isLoading, 
+    addNotification 
+  } = useAppContext()
+  
+  const router = useRouter()
   const [modalTransacaoAberto, setModalTransacaoAberto] = useState(false)
 
-  const handleWelcomeUser = () => {
-    if (!userInfo) {
-      setUserInfo({
-        id: "1",
-        name: "João Silva", 
-        email: "joao@empresa.com",
-        role: "admin"
-      })
-      addNotification({
-        type: "success",
-        message: "Bem-vindo ao Sistema ERP!"
-      })
+
+  useEffect(() => {
+
+    if (!isLoading && !isAuthenticated) {
+      router.push("/login")
     }
-  }
+  }, [isAuthenticated, isLoading, router])
 
   const criarTransacao = async (dados: any) => {
     addNotification({
       type: "success",
-      message: "Transacao registrada com sucesso!"
+      message: "Transação registrada com sucesso!"
     })
     setModalTransacaoAberto(false)
+  }
+
+  if (isLoading || !isAuthenticated) {
+    return null
   }
 
   return (
@@ -46,18 +49,22 @@ export default function Dashboard() {
         description="Visão geral do desempenho da empresa"
         actions={
           <div className="flex gap-2">
-            <Button onClick={handleWelcomeUser}>
-              {userInfo ? `Olá, ${userInfo.name}` : "Login"}
-            </Button>
-            <Button className="bg-orange-500 hover:bg-orange-600" onClick={() => setModalTransacaoAberto(true)}>
-              Nova Transacao
+            <div className="flex items-center px-4 py-2 bg-gray-100 rounded-md text-sm font-medium text-gray-700 border border-gray-200">
+              Olá, {userInfo?.name || "Usuário"}
+            </div>
+            
+            <Button 
+              className="bg-orange-500 hover:bg-orange-600 text-white" 
+              onClick={() => setModalTransacaoAberto(true)}
+            >
+              Nova Transação
             </Button>
           </div>
         }
         breadcrumbs={[{ label: "Início", href: "/" }, { label: "Dashboard" }]}
       />
 
-      {/* KPIs */}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[{
           title: "Receita Total",
