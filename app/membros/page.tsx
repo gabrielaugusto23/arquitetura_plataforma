@@ -11,159 +11,156 @@ import { PageHeader } from "@/components/page-header"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useAppContext } from "@/app/context/AppContext"
-import { ModalNovoCliente } from "@/components/modal-novo-cliente"
-import { ModalVerCliente } from "@/components/modal-ver-cliente"
-import { STATUS_CLIENTE, type Cliente, type DadosCliente } from "@/types/cliente"
+import { ModalNovoMembro } from "@/components/modal-novo-membro"
+import { ModalVerMembro } from "@/components/modal-ver-membro"
+import { ROLES_MEMBRO, STATUS_MEMBRO, type Membro, type DadosMembro } from "@/types/membro"
 
-// Dados mockados de clientes
-const CLIENTES_MOCKADOS: Cliente[] = [
+// Dados mockados de membros
+const MEMBROS_MOCKADOS: Membro[] = [
   {
-    id: "C001",
-    nomeEmpresa: "Tech Solutions Brasil",
-    nomeContato: "Roberto Silva",
-    email: "contato@techsolutions.com",
-    telefone: "(11) 3333-4444",
-    endereco: "Avenida Paulista, 1000",
-    cidade: "São Paulo",
-    estado: "SP",
-    cep: "01310-100",
-    cnpj: "12.345.678/0001-99",
-    dataCriacao: new Date("2025-01-10").toISOString(),
+    id: "M001",
+    nome: "João Silva",
+    email: "joao.silva@engnet.com",
+    telefone: "(61) 99999-1234",
+    departamento: "Vendas",
+    cargo: "Gerente",
+    role: "Admin",
+    dataCriacao: new Date("2025-01-15").toISOString(),
     ultimaAtualizacao: new Date("2025-11-24").toISOString(),
     status: "Ativo",
-    descricao: "Cliente ativo com múltiplos projetos em andamento",
+    descricao: "Gerente de vendas responsável pelas operações comerciais",
   },
   {
-    id: "C002",
-    nomeEmpresa: "Consultoria XYZ",
-    nomeContato: "Fernanda Costa",
-    email: "fernanda@consultoriaxyz.com",
-    telefone: "(21) 2222-3333",
-    endereco: "Rua do Ouvidor, 50",
-    cidade: "Rio de Janeiro",
-    estado: "RJ",
-    cep: "20040-020",
-    cnpj: "98.765.432/0001-11",
-    dataCriacao: new Date("2025-02-15").toISOString(),
-    ultimaAtualizacao: new Date("2025-11-24").toISOString(),
-    status: "Novo",
-    descricao: "Cliente novo em fase de negociação",
-  },
-  {
-    id: "C003",
-    nomeEmpresa: "Indústria ABC",
-    nomeContato: "Marcos Oliveira",
-    email: "marcos@industriaabc.com",
-    telefone: "(31) 4444-5555",
-    endereco: "Avenida do Contorno, 8000",
-    cidade: "Belo Horizonte",
-    estado: "MG",
-    cep: "30140-071",
-    cnpj: "55.555.555/0001-55",
-    dataCriacao: new Date("2025-03-20").toISOString(),
+    id: "M002",
+    nome: "Maria Santos",
+    email: "maria.santos@engnet.com",
+    telefone: "(61) 98888-5678",
+    departamento: "Suporte",
+    cargo: "Especialista",
+    role: "Membro",
+    dataCriacao: new Date("2025-02-20").toISOString(),
     ultimaAtualizacao: new Date("2025-11-24").toISOString(),
     status: "Ativo",
-    descricao: "Grande cliente industrial",
+    descricao: "Especialista em suporte técnico",
   },
   {
-    id: "C004",
-    nomeEmpresa: "Startup Digital",
-    nomeContato: "Amanda Santos",
-    email: "amanda@startupdigital.com",
-    telefone: "(85) 9999-8888",
-    endereco: "Rua Tabelião Sumé, 100",
-    cidade: "Fortaleza",
-    estado: "CE",
-    cep: "60060-240",
-    cnpj: "77.777.777/0001-77",
+    id: "M003",
+    nome: "Pedro Costa",
+    email: "pedro.costa@engnet.com",
+    telefone: "(61) 97777-9012",
+    departamento: "Desenvolvimento",
+    cargo: "Analista",
+    role: "Membro",
+    dataCriacao: new Date("2025-03-10").toISOString(),
+    ultimaAtualizacao: new Date("2025-11-24").toISOString(),
+    status: "Ativo",
+    descricao: "Analista de sistemas especializado em arquitetura",
+  },
+  {
+    id: "M004",
+    nome: "Ana Oliveira",
+    email: "ana.oliveira@engnet.com",
+    telefone: "(61) 96666-3456",
+    departamento: "Design",
+    cargo: "Coordenador",
+    role: "Membro",
     dataCriacao: new Date("2025-04-05").toISOString(),
     ultimaAtualizacao: new Date("2025-11-24").toISOString(),
     status: "Inativo",
-    descricao: "Cliente inativo - encerramento de contrato",
+    descricao: "Coordenadora de design e UX",
+  },
+  {
+    id: "M005",
+    nome: "Carlos Mendes",
+    email: "carlos.mendes@engnet.com",
+    telefone: "(61) 95555-7890",
+    departamento: "Marketing",
+    cargo: "Assistente",
+    role: "Membro",
+    dataCriacao: new Date("2025-05-12").toISOString(),
+    ultimaAtualizacao: new Date("2025-11-24").toISOString(),
+    status: "Ativo",
+    descricao: "Assistente de marketing digital",
   },
 ]
 
-export default function ClientesPage() {
+export default function MembrosPage() {
   const { addNotification } = useAppContext()
   const [modalNovoAberto, setModalNovoAberto] = useState(false)
   const [modalVerAberto, setModalVerAberto] = useState(false)
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
+  const [membroSelecionado, setMembroSelecionado] = useState<Membro | null>(null)
   const [busca, setBusca] = useState("")
   const [statusFiltro, setStatusFiltro] = useState("todos")
-  const [clientes, setClientes] = useState<Cliente[]>(CLIENTES_MOCKADOS)
+  const [membros, setMembros] = useState<Membro[]>(MEMBROS_MOCKADOS)
 
-  const clientesFiltrados = clientes.filter((cliente) => {
+  const membrosFiltrados = membros.filter((membro) => {
     const matchBusca =
-      cliente.nomeEmpresa.toLowerCase().includes(busca.toLowerCase()) ||
-      cliente.nomeContato.toLowerCase().includes(busca.toLowerCase()) ||
-      cliente.email.toLowerCase().includes(busca.toLowerCase())
+      membro.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      membro.email.toLowerCase().includes(busca.toLowerCase()) ||
+      membro.departamento.toLowerCase().includes(busca.toLowerCase())
 
     const matchStatus =
       statusFiltro === "todos" ||
-      cliente.status.toLowerCase() === statusFiltro.toLowerCase()
+      membro.status.toLowerCase() === statusFiltro.toLowerCase()
 
     return matchBusca && matchStatus
   })
 
-  const abrirModalVer = (cliente: Cliente) => {
-    setClienteSelecionado(cliente)
+  const abrirModalVer = (membro: Membro) => {
+    setMembroSelecionado(membro)
     setModalVerAberto(true)
   }
 
-  const criarCliente = async (dados: DadosCliente) => {
-    const novoCliente: Cliente = {
-      id: `C${Math.random().toString(36).substr(2, 9)}`,
+  const criarMembro = async (dados: DadosMembro) => {
+    const novoMembro: Membro = {
+      id: `M${Math.random().toString(36).substr(2, 9)}`,
       ...dados,
       dataCriacao: new Date().toISOString(),
       ultimaAtualizacao: new Date().toISOString(),
-      status: dados.status || "Novo",
+      status: dados.status || "Ativo",
     }
 
-    setClientes([novoCliente, ...clientes])
+    setMembros([novoMembro, ...membros])
     addNotification({
       type: "success",
-      message: "Cliente criado com sucesso!"
+      message: "Membro adicionado com sucesso!"
     })
   }
 
-  const editarCliente = async (clienteId: string, dados: DadosCliente) => {
-    setClientes(
-      clientes.map((c) =>
-        c.id === clienteId
+  const editarMembro = async (membroId: string, dados: DadosMembro) => {
+    setMembros(
+      membros.map((m) =>
+        m.id === membroId
           ? {
-              ...c,
+              ...m,
               ...dados,
               ultimaAtualizacao: new Date().toISOString(),
             }
-          : c
+          : m
       )
     )
     addNotification({
       type: "success",
-      message: "Cliente atualizado com sucesso!"
+      message: "Membro atualizado com sucesso!"
     })
   }
 
-  const deletarCliente = (clienteId: string) => {
-    if (confirm("Tem certeza que deseja excluir este cliente?")) {
-      setClientes(clientes.filter((c) => c.id !== clienteId))
+  const deletarMembro = (membroId: string) => {
+    if (confirm("Tem certeza que deseja excluir este membro?")) {
+      setMembros(membros.filter((m) => m.id !== membroId))
       addNotification({
         type: "success",
-        message: "Cliente excluído com sucesso!"
+        message: "Membro excluído com sucesso!"
       })
     }
   }
 
   const getBadgeVariant = (status: string) => {
     switch (status) {
-      case "VIP":
-        return "bg-yellow-500/15 text-yellow-400 border-yellow-500/20"
       case "Ativo":
         return "bg-green-500/15 text-green-400 border-green-500/20"
       case "Inativo":
         return "bg-red-500/15 text-red-400 border-red-500/20"
-      case "Novo":
-        return "bg-blue-500/15 text-blue-400 border-blue-500/20"
       default:
         return ""
     }
@@ -172,16 +169,16 @@ export default function ClientesPage() {
   return (
     <DashboardLayout>
       <PageHeader
-        title="Clientes"
-        description="Gerencie todos os clientes da empresa"
-        breadcrumbs={[{ label: "Início", href: "/" }, { label: "Clientes" }]}
+        title="Membros"
+        description="Gerencie todos os membros da sua equipe"
+        breadcrumbs={[{ label: "Início", href: "/" }, { label: "Membros" }]}
         actions={
           <Button
             className="bg-orange-500 hover:bg-orange-600"
             onClick={() => setModalNovoAberto(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Novo Cliente
+            Novo Membro
           </Button>
         }
       />
@@ -192,7 +189,7 @@ export default function ClientesPage() {
             <div className="flex w-full flex-1 items-center gap-2 rounded-md border border-gray-800 bg-gray-950 px-2 py-1">
               <Search className="h-4 w-4 text-gray-500" />
               <Input
-                placeholder="Buscar por empresa, contato ou email..."
+                placeholder="Buscar por nome, email ou departamento..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
                 className="h-8 border-0 bg-transparent text-sm placeholder:text-gray-500 focus-visible:ring-0"
@@ -211,13 +208,11 @@ export default function ClientesPage() {
 
           <div className="mt-4">
             <Tabs value={statusFiltro} onValueChange={setStatusFiltro}>
-              <TabsList className="grid w-full grid-cols-5 bg-gray-950">
+              <TabsList className="grid w-full grid-cols-3 bg-gray-950">
                 {[
                   { v: "todos", l: "Todos" },
-                  { v: "vip", l: "VIP" },
                   { v: "ativo", l: "Ativos" },
                   { v: "inativo", l: "Inativos" },
-                  { v: "novo", l: "Novos" },
                 ].map((t) => (
                   <TabsTrigger
                     key={t.v}
@@ -235,41 +230,41 @@ export default function ClientesPage() {
                     <Table>
                       <TableHeader className="sticky top-0 z-10 bg-black">
                         <TableRow className="border-gray-800">
-                          <TableHead className="text-gray-300">Empresa</TableHead>
-                          <TableHead className="text-gray-300">Contato</TableHead>
+                          <TableHead className="text-gray-300">Nome</TableHead>
                           <TableHead className="text-gray-300">Email</TableHead>
-                          <TableHead className="text-gray-300">Telefone</TableHead>
-                          <TableHead className="text-gray-300">Cidade</TableHead>
+                          <TableHead className="text-gray-300">Departamento</TableHead>
+                          <TableHead className="text-gray-300">Cargo</TableHead>
+                          <TableHead className="text-gray-300">Função</TableHead>
                           <TableHead className="text-gray-300">Status</TableHead>
                           <TableHead className="text-gray-300">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {clientesFiltrados.map((cliente, idx) => (
+                        {membrosFiltrados.map((membro, idx) => (
                           <TableRow
-                            key={cliente.id}
+                            key={membro.id}
                             className={`border-gray-800 hover:bg-gray-950 ${
                               idx % 2 === 0 ? "bg-black" : "bg-gray-950/60"
                             }`}
                           >
                             <TableCell className="font-medium text-white">
-                              {cliente.nomeEmpresa}
+                              {membro.nome}
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              {cliente.nomeContato}
+                              {membro.email}
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              {cliente.email}
+                              {membro.departamento}
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              {cliente.telefone}
+                              {membro.cargo}
                             </TableCell>
                             <TableCell className="text-gray-300">
-                              {cliente.cidade || "-"}
+                              {membro.role}
                             </TableCell>
                             <TableCell>
-                              <Badge className={getBadgeVariant(cliente.status)}>
-                                {cliente.status}
+                              <Badge className={getBadgeVariant(membro.status)}>
+                                {membro.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -278,7 +273,7 @@ export default function ClientesPage() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 text-gray-400 hover:text-orange-500 hover:bg-gray-900"
-                                  onClick={() => abrirModalVer(cliente)}
+                                  onClick={() => abrirModalVer(membro)}
                                   title="Visualizar/Editar"
                                 >
                                   <Eye className="h-4 w-4" />
@@ -287,7 +282,7 @@ export default function ClientesPage() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-gray-900"
-                                  onClick={() => deletarCliente(cliente.id)}
+                                  onClick={() => deletarMembro(membro.id)}
                                   title="Excluir"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -302,8 +297,8 @@ export default function ClientesPage() {
 
                   <div className="flex items-center justify-between border-t border-gray-800 bg-black px-3 py-2 text-sm text-gray-400">
                     <span>
-                      Mostrando {clientesFiltrados.length} de {clientes.length}{" "}
-                      clientes
+                      Mostrando {membrosFiltrados.length} de {membros.length}{" "}
+                      membros
                     </span>
                   </div>
                 </div>
@@ -313,18 +308,18 @@ export default function ClientesPage() {
         </CardContent>
       </Card>
 
-      <ModalNovoCliente
+      <ModalNovoMembro
         aberto={modalNovoAberto}
         aoFechar={() => setModalNovoAberto(false)}
-        aoEnviar={criarCliente}
+        aoEnviar={criarMembro}
       />
 
-      {clienteSelecionado && (
-        <ModalVerCliente
+      {membroSelecionado && (
+        <ModalVerMembro
           aberto={modalVerAberto}
           aoFechar={() => setModalVerAberto(false)}
-          cliente={clienteSelecionado}
-          aoSalvarEdicao={editarCliente}
+          membro={membroSelecionado}
+          aoSalvarEdicao={editarMembro}
         />
       )}
     </DashboardLayout>
