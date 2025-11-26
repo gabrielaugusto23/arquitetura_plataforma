@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface User {
   id: string;
-  name: string;
+  nome: string;
   email: string;
   role: string;
   avatar?: string;
@@ -37,22 +37,29 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('engnet_user');
-    if (savedUser) {
-      try {
-        setUserInfo(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('engnet_user');
+    const recuperarSessao = () => {
+      const savedUser = localStorage.getItem('engnet_user');
+      const token = localStorage.getItem('engnet_token');
+
+      if (savedUser && token) {
+        try {
+          setUserInfo(JSON.parse(savedUser));
+        } catch (e) {
+          localStorage.removeItem('engnet_user');
+          localStorage.removeItem('engnet_token');
+        }
       }
-    }
+      setIsLoading(false);
+    };
+    recuperarSessao();
   }, []);
 
   const login = async (email: string, senha: string) => {
@@ -70,7 +77,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await res.json();
-      
       const user = data.user;
       const token = data.access_token;
 
