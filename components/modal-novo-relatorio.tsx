@@ -145,27 +145,12 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
       return
     }
 
-    if (!arquivo) {
-      toast({
-        title: "Arquivo obrigatório",
-        description: "Anexe um arquivo CSV para criar o relatório",
-        variant: "destructive",
-      })
-      return
-    }
+    // REMOVIDO: Bloco de validação de arquivo obrigatório
+    // if (!arquivo) { ... }
 
     setCarregando(true)
 
     try {
-      // Chamada ao backend para criar relatório
-      // Conexão com API: POST /api/relatorios
-      // Body: FormData com os dados do relatório e arquivo CSV
-      // IMPORTANTE: Implementar no backend:
-      // - Validar arquivo CSV
-      // - Processar e armazenar arquivo
-      // - Criar registro no banco de dados
-      // - Retornar dados do relatório criado
-      
       await aoEnviar(dados)
 
       toast({
@@ -331,7 +316,7 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
           {/* Upload de arquivo CSV */}
           <div className="space-y-2">
             <Label htmlFor="arquivo" className="text-gray-300">
-              Arquivo CSV
+              Arquivo CSV (opcional)
             </Label>
             {!arquivo ? (
               <label className="relative block cursor-pointer rounded-lg border border-dashed border-gray-800 bg-gray-950 p-4 text-center transition hover:border-orange-500/50">
@@ -341,7 +326,7 @@ export function ModalNovoRelatorio({ aberto, aoFechar, aoEnviar }: ModalNovoRela
                   accept=".csv"
                   onChange={handleSelecionarArquivo}
                   className="hidden"
-                  required
+                  // REMOVIDO: required
                 />
                 <Upload className="mx-auto mb-2 h-5 w-5 text-orange-500" />
                 <p className="text-xs text-gray-300">
