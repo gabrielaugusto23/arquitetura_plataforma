@@ -170,24 +170,18 @@ export function ModalVerRelatorio({
     setCarregando(true)
 
     try {
-      // Chamada ao backend para editar relatório
-      // Conexão com API: PUT /api/relatorios/:id
-      // Body: FormData com os dados atualizados e arquivo CSV (opcional)
-      // IMPORTANTE: Implementar no backend:
-      // - Validar arquivo CSV (se fornecido)
-      // - Atualizar registro no banco de dados
-      // - Processar novo arquivo se fornecido
-      // - Retornar dados do relatório atualizado
-
       await aoSalvarEdicao(relatorio.id, dados)
 
       toast({
         title: "Relatório atualizado",
         description: "Suas alterações foram salvas com sucesso",
       })
-
-      setEmEdicao(false)
+      
       setArquivo(null)
+      
+      // MUDANÇA AQUI: Fecha o modal completamente ao invés de voltar para visualização
+      aoFechar() 
+
     } catch (erro) {
       toast({
         title: "Erro ao atualizar relatório",
@@ -393,7 +387,8 @@ export function ModalVerRelatorio({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setEmEdicao(false)}
+                // MUDANÇA AQUI: Fecha o modal completamente ao clicar em Cancelar
+                onClick={aoFechar} 
                 className="border-gray-800 text-gray-300 hover:bg-gray-950"
               >
                 Cancelar

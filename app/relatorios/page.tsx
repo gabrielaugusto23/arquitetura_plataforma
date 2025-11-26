@@ -1,7 +1,7 @@
 "use client"
 
 // Componentes para a interface de relatórios
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,146 +13,57 @@ import { ModalVerRelatorio } from "@/components/modal-ver-relatorio"
 import { ComponenteFiltroRelatorios } from "@/components/componente-filtro-relatorios"
 import { useToast } from "@/hooks/use-toast"
 import { exportarRelatoriosEmCSV } from "@/lib/utilitario-exportacao"
+import { ServicoRelatorios } from "@/lib/servico-relatorios" // <--- Importação do Serviço
 
 // Ícones relacionados a dados, arquivos e análises
-import { ArrowUp, BarChart3, FileText, Download, Calendar, Eye, Edit2 } from 'lucide-react'
+import { ArrowUp, BarChart3, FileText, Download, Calendar, Eye, Edit2, Loader2 } from 'lucide-react'
 import { type Relatorio, type FiltrosRelatorio, type DadosRelatorio } from "@/types/relatorio"
-
-// Dados mockados de relatórios para demonstração
-// IMPORTATE: Quando conectar ao backend, substituir por chamda  API
-const RELATORIOS_MOCKADOS: Relatorio[] = [
-  {
-    id: "R001",
-    nome: "Vendas Mensais",
-    categoria: "Vendas",
-    tipo: "Vendas Mensais",
-    periodo: "Mensal",
-    ultimaAtualizacao: new Date("2025-06-10T09:30:00").toISOString(),
-    tamanho: "2.3 MB",
-    status: "Disponível",
-    descricao: "Análise detalhada de vendas do mês",
-    usuarioCriacao: "João Silva",
-    caminhoArquivo: "/arquivos/vendas_mensais.csv",
-  },
-  {
-    id: "R002",
-    nome: "Estoque Detalhado",
-    categoria: "Estoque",
-    tipo: "Estoque Detalhado",
-    periodo: "Semanal",
-    ultimaAtualizacao: new Date("2025-06-09T18:45:00").toISOString(),
-    tamanho: "1.8 MB",
-    status: "Disponível",
-    descricao: "Situação atual do estoque",
-    usuarioCriacao: "Maria Santos",
-    caminhoArquivo: "/arquivos/estoque_detalhado.csv",
-  },
-  {
-    id: "R003",
-    nome: "Clientes Ativos",
-    categoria: "Clientes",
-    tipo: "Clientes Ativos",
-    periodo: "Mensal",
-    ultimaAtualizacao: new Date("2025-06-10T14:20:00").toISOString(),
-    tamanho: "945 KB",
-    status: "Disponível",
-    descricao: "Lista de clientes ativos no período",
-    usuarioCriacao: "Pedro Costa",
-    caminhoArquivo: "/arquivos/clientes_ativos.csv",
-  },
-  {
-    id: "R004",
-    nome: "Reembolsos Pendentes",
-    categoria: "Financeiro",
-    tipo: "Reembolsos por Funcionário",
-    periodo: "Diário",
-    ultimaAtualizacao: new Date("2025-06-10T16:15:00").toISOString(),
-    tamanho: "567 KB",
-    status: "Processando",
-    descricao: "Reembolsos aguardando processamento",
-    usuarioCriacao: "Ana Oliveira",
-    caminhoArquivo: "/arquivos/reembolsos_pendentes.csv",
-  },
-  {
-    id: "R005",
-    nome: "Performance de Vendas",
-    categoria: "Análise",
-    tipo: "Análise Comparativa",
-    periodo: "Trimestral",
-    ultimaAtualizacao: new Date("2025-06-08").toISOString(),
-    tamanho: "4.1 MB",
-    status: "Disponível",
-    descricao: "Análise de performance trimestral",
-    usuarioCriacao: "Carlos Mendes",
-    caminhoArquivo: "/arquivos/performance_vendas.csv",
-  },
-  {
-    id: "R006",
-    nome: "Produtos Mais Vendidos",
-    categoria: "Estoque",
-    tipo: "Produtos Mais Vendidos",
-    periodo: "Mensal",
-    ultimaAtualizacao: new Date("2025-06-10T11:00:00").toISOString(),
-    tamanho: "1.2 MB",
-    status: "Disponível",
-    descricao: "Produtos com maior volume de vendas",
-    usuarioCriacao: "Lucia Ferreira",
-    caminhoArquivo: "/arquivos/produtos_vendidos.csv",
-  },
-  {
-    id: "R007",
-    nome: "Fluxo de Caixa",
-    categoria: "Financeiro",
-    tipo: "Fluxo de Caixa",
-    periodo: "Mensal",
-    ultimaAtualizacao: new Date("2025-06-10T15:30:00").toISOString(),
-    tamanho: "-",
-    status: "Processando",
-    descricao: "Fluxo de caixa do período",
-    usuarioCriacao: "Roberto Silva",
-    caminhoArquivo: undefined,
-  },
-]
 
 export default function RelatoriosPage() {
   const { toast } = useToast()
+  
+  // Estados de controle
   const [modalNovoAberto, setModalNovoAberto] = useState(false)
   const [modalVerAberto, setModalVerAberto] = useState(false)
   const [relatorioSelecionado, setRelatorioSelecionado] = useState<Relatorio | null>(null)
   const [filtros, setFiltros] = useState<FiltrosRelatorio>({})
-  const [relatorios, setRelatorios] = useState<Relatorio[]>(RELATORIOS_MOCKADOS)
+  
+  // Estado dos dados (Inicia vazio)
+  const [relatorios, setRelatorios] = useState<Relatorio[]>([])
+  const [carregando, setCarregando] = useState(true)
 
-  // Filtra os relatórios baseado nos filtros aplicados
+  // 1. Efeito para carregar os dados do Backend ao abrir a página
+  useEffect(() => {
+    carregarRelatorios()
+  }, [])
+
+  const carregarRelatorios = async () => {
+    try {
+      setCarregando(true)
+      const dados = await ServicoRelatorios.listarRelatorios()
+      setRelatorios(dados)
+    } catch (erro) {
+      toast({
+        title: "Erro ao carregar",
+        description: "Não foi possível buscar os relatórios do sistema.",
+        variant: "destructive"
+      })
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  // Filtra os relatórios baseado nos filtros aplicados (Mantido igual)
   const relatoriosFiltrados = useMemo(() => {
     return relatorios.filter((relatorio) => {
-      // Filtro por categoria
-      if (filtros.categoria && relatorio.categoria !== filtros.categoria) {
-        return false
-      }
-
-      // Filtro por tipo
-      if (filtros.tipo && relatorio.tipo !== filtros.tipo) {
-        return false
-      }
-
-      // Filtro por período
-      if (filtros.periodo && relatorio.periodo !== filtros.periodo) {
-        return false
-      }
-
-      // Filtro por status
-      if (filtros.status && relatorio.status !== filtros.status) {
-        return false
-      }
-
-      // Filtro por (nome)
+      if (filtros.categoria && relatorio.categoria !== filtros.categoria) return false
+      if (filtros.tipo && relatorio.tipo !== filtros.tipo) return false
+      if (filtros.periodo && relatorio.periodo !== filtros.periodo) return false
+      if (filtros.status && relatorio.status !== filtros.status) return false
       if (filtros.busca && filtros.busca.trim()) {
         const buscaMinuscula = filtros.busca.toLowerCase()
-        if (!relatorio.nome.toLowerCase().includes(buscaMinuscula)) {
-          return false
-        }
+        if (!relatorio.nome.toLowerCase().includes(buscaMinuscula)) return false
       }
-
       return true
     })
   }, [relatorios, filtros])
@@ -163,70 +74,66 @@ export default function RelatoriosPage() {
     setModalVerAberto(true)
   }
 
-  // Cria novo relatório
+  // 2. Conexão com Backend: Criar Novo Relatório
   const handleCriarRelatorio = async (dados: DadosRelatorio) => {
-    // IMPORTANTE: Implementar chamada ao backend
-    // Endpoint: POST /api/relatorios
-    // Body: FormData com dados do relatório
-    
-    const novoRelatorio: Relatorio = {
-      id: `R${Math.random().toString(36).substr(2, 9)}`,
-      nome: dados.nome,
-      categoria: dados.categoria,
-      tipo: dados.tipo,
-      periodo: dados.periodo,
-      ultimaAtualizacao: new Date().toISOString(),
-      tamanho: dados.arquivo ? `${(dados.arquivo.size / 1024 / 1024).toFixed(2)} MB` : "0 MB",
-      status: dados.status,
-      descricao: dados.descricao,
-      usuarioCriacao: "Usuário Logado", // Substituir pelo usuário real
-      caminhoArquivo: `/arquivos/${dados.arquivo?.name}`,
+    try {
+      // Chama o serviço
+      const novoRelatorio = await ServicoRelatorios.criarRelatorio(dados)
+      
+      // Atualiza a lista com o retorno real do backend
+      setRelatorios([novoRelatorio, ...relatorios])
+      
+      setModalNovoAberto(false) // Fecha o modal
+      toast({
+        title: "Sucesso",
+        description: "Relatório criado com sucesso",
+      })
+    } catch (erro) {
+      console.error(erro)
+      toast({
+        title: "Erro",
+        description: "Falha ao criar o relatório. Tente novamente.",
+        variant: "destructive"
+      })
     }
-
-    setRelatorios([novoRelatorio, ...relatorios])
-    toast({
-      title: "Sucesso",
-      description: "Relatório criado com sucesso",
-    })
   }
 
-  // Edita relatório existente
+  // 3. Conexão com Backend: Editar Relatório
   const handleEditarRelatorio = async (relatorioId: string, dados: DadosRelatorio) => {
-    // IMPORTANTE: Implementar chamada ao backend
+    try {
+      // Chama o serviço
+      const relatorioAtualizado = await ServicoRelatorios.editarRelatorio(relatorioId, dados)
 
-    setRelatorios(
-      relatorios.map((rel) =>
-        rel.id === relatorioId
-          ? {
-              ...rel,
-              nome: dados.nome,
-              categoria: dados.categoria,
-              tipo: dados.tipo,
-              periodo: dados.periodo,
-              ultimaAtualizacao: new Date().toISOString(),
-              status: dados.status,
-              descricao: dados.descricao,
-              usuarioEdicao: "Usuário Logado",
-              dataEdicao: new Date().toISOString(),
-              tamanho: dados.arquivo
-                ? `${(dados.arquivo.size / 1024 / 1024).toFixed(2)} MB`
-                : rel.tamanho,
-            }
-          : rel
+      // Atualiza o item específico na lista
+      setRelatorios(
+        relatorios.map((rel) =>
+          rel.id === relatorioId ? relatorioAtualizado : rel
+        )
       )
-    )
 
-    toast({
-      title: "Sucesso",
-      description: "Relatório atualizado com sucesso",
-    })
+      // Atualiza também o selecionado se o modal de visualização estiver aberto
+      if (relatorioSelecionado?.id === relatorioId) {
+        setRelatorioSelecionado(relatorioAtualizado)
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Relatório atualizado com sucesso",
+      })
+    } catch (erro) {
+      console.error(erro)
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar o relatório.",
+        variant: "destructive"
+      })
+    }
   }
 
-  // Baixa relatório em Excel
+  // Baixa relatório (Mantendo lógica frontend por enquanto, mas pode ser ajustada para URL real)
   const handleBaixarRelatorio = (relatorio: Relatorio) => {
-    // IMPORTANTE: Implementar chamada ao backend
-    // Endpoint: GET /api/relatorios/:id/download
-
+    // Se o backend retornar um caminhoArquivo real (URL pública), você poderia usar window.open(relatorio.caminhoArquivo)
+    // Por enquanto, mantemos a exportação CSV dos metadados como fallback
     exportarRelatoriosEmCSV([relatorio], `${relatorio.nome}.csv`)
 
     toast({
@@ -283,6 +190,7 @@ export default function RelatoriosPage() {
                 onClick={handleBaixarTodos}
                 variant="outline"
                 className="border-gray-800 text-gray-300 hover:bg-gray-950"
+                disabled={carregando || relatorios.length === 0}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Exportar
@@ -304,15 +212,17 @@ export default function RelatoriosPage() {
         <Card className="border-gray-800 bg-black">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-300">Relatórios Hoje</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-300">Total Relatórios</CardTitle>
               <BarChart3 className="h-4 w-4 text-orange-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold text-white">{relatorios.length}</div>
+            <div className="text-2xl font-semibold text-white">
+              {carregando ? "-" : relatorios.length}
+            </div>
             <p className="mt-1 flex items-center text-xs text-green-400">
               <ArrowUp className="mr-1 h-3 w-3" />
-              +{relatorios.length} total
+              Atualizado agora
             </p>
           </CardContent>
         </Card>
@@ -326,7 +236,7 @@ export default function RelatoriosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-white">
-              {relatorios.filter((r) => r.status === "Disponível").length}
+              {carregando ? "-" : relatorios.filter((r) => r.status === "Disponível").length}
             </div>
             <p className="mt-1 flex items-center text-xs text-green-400">
               <ArrowUp className="mr-1 h-3 w-3" />
@@ -344,7 +254,7 @@ export default function RelatoriosPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-semibold text-white">
-              {relatorios.filter((r) => r.status === "Processando").length}
+              {carregando ? "-" : relatorios.filter((r) => r.status === "Processando").length}
             </div>
             <p className="mt-1 flex items-center text-xs text-yellow-400">
               <ArrowUp className="mr-1 h-3 w-3" />
@@ -382,7 +292,7 @@ export default function RelatoriosPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-white">Relatórios Disponíveis</CardTitle>
             <span className="text-sm text-gray-400">
-              {relatoriosFiltrados.length} relatório(s) encontrado(s)
+              {carregando ? "Carregando..." : `${relatoriosFiltrados.length} relatório(s) encontrado(s)`}
             </span>
           </div>
         </CardHeader>
@@ -402,8 +312,16 @@ export default function RelatoriosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Lista dinâmica de relatórios filtrados */}
-                {relatoriosFiltrados.length > 0 ? (
+                {carregando ? (
+                   <TableRow className="border-gray-800">
+                     <TableCell colSpan={7} className="py-8 text-center text-gray-400">
+                       <div className="flex justify-center items-center gap-2">
+                         <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                         Carregando relatórios...
+                       </div>
+                     </TableCell>
+                   </TableRow>
+                ) : relatoriosFiltrados.length > 0 ? (
                   relatoriosFiltrados.map((relatorio, indice) => (
                     <TableRow
                       key={relatorio.id}
@@ -420,15 +338,13 @@ export default function RelatoriosPage() {
                           : relatorio.ultimaAtualizacao.toLocaleString("pt-BR")
                         }
                       </TableCell>
-                      <TableCell className="text-white">{relatorio.tamanho}</TableCell>
+                      <TableCell className="text-white">{relatorio.tamanho || "-"}</TableCell>
                       <TableCell>
-                        {/* seçãostatus do relatório */}
                         <Badge className={getBadgeVariant(relatorio.status)}>
                           {relatorio.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {/* Botões de ação dependendo do status do relatório */}
                         <div className="flex gap-2">
                           {relatorio.status === "Disponível" && (
                             <Button
